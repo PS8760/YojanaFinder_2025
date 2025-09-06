@@ -1,346 +1,346 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 
-// --- Augmented Mock Data for Government Schemes ---
-// In a real application, this data would come from an API.
-const allSchemes = [
-  {
-    name: "Pradhan Mantri Kisan Samman Nidhi",
-    category: "Agriculture",
-    state: "Central",
-    description:
-      "Provides income support to all landholding farmer families in the country.",
-    department: "Ministry of Agriculture & Farmers Welfare",
-    minAge: 18,
-    maxAge: 60,
-    gender: "All",
-    caste: "All",
-    profession: "Farmer",
-  },
-  {
-    name: "Ayushman Bharat PM-JAY",
-    category: "Health",
-    state: "Central",
-    description: "Health insurance coverage for low-income earners in India.",
-    department: "Ministry of Health and Family Welfare",
-    minAge: 0,
-    maxAge: 99,
-    gender: "All",
-    caste: "All",
-    profession: "All",
-  },
-  {
-    name: "National Education Policy Fellowship",
-    category: "Education",
-    state: "Central",
-    description:
-      "Scholarships for students pursuing higher education under the new policy guidelines.",
-    department: "Ministry of Education",
-    minAge: 17,
-    maxAge: 25,
-    gender: "All",
-    caste: "All",
-    profession: "Student",
-  },
-  {
-    name: "Stand-Up India Scheme",
-    category: "Business",
-    state: "Central",
-    description:
-      "Promotes entrepreneurship among women and Scheduled Castes and Tribes.",
-    department: "Ministry of Finance",
-    minAge: 18,
-    maxAge: 99,
-    gender: "Female",
-    caste: ["SC", "ST"],
-    profession: "All",
-  },
-  {
-    name: "Mazi Kanya Bhagyashree",
-    category: "Social Welfare",
-    state: "Maharashtra",
-    description:
-      "A scheme to improve the sex ratio and promote the education of girls.",
-    department: "Government of Maharashtra",
-    minAge: 0,
-    maxAge: 18,
-    gender: "Female",
-    caste: "All",
-    profession: "Student",
-  },
-  {
-    name: "Pradhan Mantri Shram Yogi Maan-dhan",
-    category: "Social Welfare",
-    state: "Central",
-    description:
-      "A voluntary and contributory pension scheme for unorganized workers.",
-    department: "Ministry of Labour & Employment",
-    minAge: 18,
-    maxAge: 40,
-    gender: "All",
-    caste: "All",
-    profession: "Unorganized Worker",
-  },
-];
+// --- SVG Loading Spinner ---
+const LoadingSpinner = () => (
+  <svg
+    className="animate-spin h-10 w-10 text-blue-500"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    ></circle>
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    ></path>
+  </svg>
+);
 
 const Schemes = () => {
-  const [schemes, setSchemes] = useState(allSchemes);
-  // Existing filters
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("All");
-  const [stateFilter, setStateFilter] = useState("All");
-  // New dynamic filters
-  const [age, setAge] = useState("");
-  const [caste, setCaste] = useState("All");
-  const [profession, setProfession] = useState("All");
-  const [gender, setGender] = useState("All");
+  // --- OPTIMIZATION 1: Consolidate all filter inputs into a single state object ---
+  const [filters, setFilters] = useState({
+    searchTerm: "",
+    categoryFilter: "All",
+    stateFilter: "All",
+    age: "",
+    caste: "All",
+    profession: "All",
+    gender: "All",
+  });
 
-  // Effect to filter schemes when any filter value changes
-  useEffect(() => {
-    let filtered = allSchemes;
+  const [schemes, setSchemes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showResults, setShowResults] = useState(false);
 
-    // Text search
-    if (searchTerm) {
-      filtered = filtered.filter((s) =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    // Category dropdown
-    if (categoryFilter !== "All") {
-      filtered = filtered.filter((s) => s.category === categoryFilter);
-    }
-    // State dropdown
-    if (stateFilter !== "All") {
-      filtered = filtered.filter((s) => s.state === stateFilter);
-    }
-    // Age input
-    if (age) {
-      const numericAge = parseInt(age, 10);
-      filtered = filtered.filter(
-        (s) => numericAge >= s.minAge && numericAge <= s.maxAge
-      );
-    }
-    // Caste dropdown
-    if (caste !== "All") {
-      filtered = filtered.filter(
-        (s) => s.caste === "All" || s.caste.includes(caste)
-      );
-    }
-    // Profession dropdown
-    if (profession !== "All") {
-      filtered = filtered.filter(
-        (s) => s.profession === "All" || s.profession === profession
-      );
-    }
-    // Gender dropdown
-    if (gender !== "All") {
-      filtered = filtered.filter(
-        (s) => s.gender === "All" || s.gender === gender
-      );
-    }
+  // --- OPTIMIZATION 2: Create a single handler for all filter changes ---
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [name]: value,
+    }));
+  };
 
-    setSchemes(filtered);
-  }, [searchTerm, categoryFilter, stateFilter, age, caste, profession, gender]);
+  // --- OPTIMIZATION 3: Use useCallback to memoize the search function ---
+  const handleSearch = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    if (!showResults) setShowResults(true);
 
-  // Dynamically get unique options for dropdowns from the data
-  const categories = ["All", ...new Set(allSchemes.map((s) => s.category))];
-  const states = ["All", ...new Set(allSchemes.map((s) => s.state))];
+    try {
+      // The frontend only needs to know its own backend's address
+      const backendUrl = "http://localhost:3010/api/schemes";
+
+      const response = await fetch(backendUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // Send the consolidated filters object as the body
+        body: JSON.stringify(filters),
+      });
+
+      if (!response.ok) {
+        // Get more detailed error from backend if available
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API Error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setSchemes(data);
+    } catch (err) {
+      console.error("API call failed:", err);
+      setError(
+        err.message ||
+          "Failed to fetch schemes. Please check your connection and try again."
+      );
+      setSchemes([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters, showResults]); // Dependency array ensures the function is recreated only when filters change
+
+  // Static options for dropdowns
+  const categories = [
+    "All",
+    "Agriculture",
+    "Health",
+    "Education",
+    "Business",
+    "Social Welfare",
+  ];
+  const states = [
+    "All",
+    "Central",
+    "Maharashtra",
+    "Delhi",
+    "Karnataka",
+    "Tamil Nadu",
+  ];
   const professions = [
     "All",
-    ...new Set(
-      allSchemes.filter((s) => s.profession !== "All").map((s) => s.profession)
-    ),
+    "Farmer",
+    "Student",
+    "Unorganized Worker",
+    "Entrepreneur",
   ];
-  const castes = ["All", "General", "OBC", "SC", "ST"]; // Static list for simplicity
+  const castes = ["All", "General", "OBC", "SC", "ST"];
   const genders = ["All", "Male", "Female"];
 
   return (
-    <div className="container mx-auto px-6 py-16">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-          Explore Government Schemes
-        </h1>
-        <p className="mt-4 text-lg max-w-3xl mx-auto text-gray-600">
-          Use the filters below to find central and state-level schemes tailored
-          to your needs.
-        </p>
-      </div>
+    <div
+      className={`container mx-auto px-6 py-16 transition-all duration-500 ${
+        !showResults
+          ? "flex items-center justify-center min-h-[calc(100vh-200px)]"
+          : ""
+      }`}
+    >
+      <div className="w-full max-w-6xl">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+            Find Your Schemes with AI
+          </h1>
+          <p className="mt-4 text-lg max-w-3xl mx-auto text-gray-600">
+            Fill in your details below, and our AI will find the most relevant
+            government schemes for you.
+          </p>
+        </div>
 
-      {/* Filter and Search Bar - Now a 2x2 grid on medium screens */}
-      <div className="mb-12 p-8 bg-white rounded-2xl shadow-lg grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Search by Name */}
-        <div className="lg:col-span-2">
-          <label
-            htmlFor="search"
-            className="block mb-2 font-semibold text-gray-700"
-          >
-            Search by Name
-          </label>
-          <input
-            type="text"
-            id="search"
-            placeholder="e.g., Ayushman Bharat"
-            className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        {/* Age */}
-        <div>
-          <label
-            htmlFor="age"
-            className="block mb-2 font-semibold text-gray-700"
-          >
-            Your Age
-          </label>
-          <input
-            type="number"
-            id="age"
-            placeholder="e.g., 25"
-            className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-          />
-        </div>
-        {/* Gender */}
-        <div>
-          <label
-            htmlFor="gender"
-            className="block mb-2 font-semibold text-gray-700"
-          >
-            Gender
-          </label>
-          <select
-            id="gender"
-            className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-          >
-            {genders.map((g) => (
-              <option key={g} value={g}>
-                {g}
-              </option>
-            ))}
-          </select>
-        </div>
-        {/* Profession */}
-        <div>
-          <label
-            htmlFor="profession"
-            className="block mb-2 font-semibold text-gray-700"
-          >
-            Profession
-          </label>
-          <select
-            id="profession"
-            className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            value={profession}
-            onChange={(e) => setProfession(e.target.value)}
-          >
-            {professions.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </div>
-        {/* Caste */}
-        <div>
-          <label
-            htmlFor="caste"
-            className="block mb-2 font-semibold text-gray-700"
-          >
-            Caste
-          </label>
-          <select
-            id="caste"
-            className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            value={caste}
-            onChange={(e) => setCaste(e.target.value)}
-          >
-            {castes.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-        {/* Category */}
-        <div>
-          <label
-            htmlFor="category"
-            className="block mb-2 font-semibold text-gray-700"
-          >
-            Scheme Category
-          </label>
-          <select
-            id="category"
-            className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-        </div>
-        {/* State */}
-        <div>
-          <label
-            htmlFor="state"
-            className="block mb-2 font-semibold text-gray-700"
-          >
-            State/Central
-          </label>
-          <select
-            id="state"
-            className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-            value={stateFilter}
-            onChange={(e) => setStateFilter(e.target.value)}
-          >
-            {states.map((st) => (
-              <option key={st} value={st}>
-                {st}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Schemes Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {schemes.length > 0 ? (
-          schemes.map((scheme, index) => (
-            <div
-              key={index}
-              className="bg-white p-8 rounded-2xl shadow-lg flex flex-col hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
+        {/* Filter and Search Form */}
+        <div className="mb-12 p-8 bg-white rounded-2xl shadow-lg grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-2">
+            <label
+              htmlFor="searchTerm"
+              className="block mb-2 font-semibold text-gray-700"
             >
-              <h2 className="text-2xl font-bold text-blue-500 mb-3">
-                {scheme.name}
-              </h2>
-              <p className="text-gray-600 mb-4 flex-grow">
-                {scheme.description}
-              </p>
-              <div className="mt-auto pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-500 mb-2">
-                  <strong>Department:</strong> {scheme.department}
+              Search by Name
+            </label>
+            <input
+              type="text"
+              id="searchTerm"
+              name="searchTerm"
+              placeholder="e.g., Ayushman Bharat"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              value={filters.searchTerm}
+              onChange={handleFilterChange}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="age"
+              className="block mb-2 font-semibold text-gray-700"
+            >
+              Your Age
+            </label>
+            <input
+              type="number"
+              id="age"
+              name="age"
+              placeholder="e.g., 25"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              value={filters.age}
+              onChange={handleFilterChange}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="gender"
+              className="block mb-2 font-semibold text-gray-700"
+            >
+              Gender
+            </label>
+            <select
+              id="gender"
+              name="gender"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              value={filters.gender}
+              onChange={handleFilterChange}
+            >
+              {genders.map((g) => (
+                <option key={g} value={g}>
+                  {g}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="profession"
+              className="block mb-2 font-semibold text-gray-700"
+            >
+              Profession
+            </label>
+            <select
+              id="profession"
+              name="profession"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              value={filters.profession}
+              onChange={handleFilterChange}
+            >
+              {professions.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="caste"
+              className="block mb-2 font-semibold text-gray-700"
+            >
+              Caste
+            </label>
+            <select
+              id="caste"
+              name="caste"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              value={filters.caste}
+              onChange={handleFilterChange}
+            >
+              {castes.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="categoryFilter"
+              className="block mb-2 font-semibold text-gray-700"
+            >
+              Scheme Category
+            </label>
+            <select
+              id="categoryFilter"
+              name="categoryFilter"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              value={filters.categoryFilter}
+              onChange={handleFilterChange}
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              htmlFor="stateFilter"
+              className="block mb-2 font-semibold text-gray-700"
+            >
+              State/Central
+            </label>
+            <select
+              id="stateFilter"
+              name="stateFilter"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              value={filters.stateFilter}
+              onChange={handleFilterChange}
+            >
+              {states.map((st) => (
+                <option key={st} value={st}>
+                  {st}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="sm:col-span-2 lg:col-span-4">
+            <button
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 text-lg shadow-md hover:shadow-lg transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {isLoading
+                ? "Searching with AI..."
+                : showResults
+                ? "Update Results"
+                : "Find Schemes"}
+            </button>
+          </div>
+        </div>
+
+        {/* Conditionally Rendered Schemes Grid */}
+        {showResults && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {isLoading ? (
+              <div className="col-span-full flex flex-col items-center justify-center py-12 bg-white rounded-2xl shadow-lg">
+                <LoadingSpinner />
+                <p className="mt-4 text-gray-600 text-lg">
+                  Our AI is finding the best schemes for you...
                 </p>
-                <a
-                  href="#"
-                  className="font-bold text-blue-500 hover:text-blue-700 transition"
-                >
-                  Learn More &rarr;
-                </a>
               </div>
-            </div>
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-600 text-lg">
-              No schemes found matching your criteria.
-            </p>
+            ) : error ? (
+              <div className="col-span-full text-center py-12 bg-red-50 border border-red-200 rounded-2xl shadow-lg">
+                <p className="text-red-600 text-lg">{error}</p>
+              </div>
+            ) : schemes.length > 0 ? (
+              schemes.map((scheme, index) => (
+                <div
+                  key={index}
+                  className="bg-white p-8 rounded-2xl shadow-lg flex flex-col hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
+                >
+                  <h2 className="text-2xl font-bold text-blue-500 mb-3">
+                    {scheme.name}
+                  </h2>
+                  <p className="text-gray-600 mb-4 flex-grow">
+                    {scheme.description}
+                  </p>
+                  <div className="mt-auto pt-4 border-t border-gray-200">
+                    <p className="text-sm text-gray-500 mb-2">
+                      <strong>Category:</strong> {scheme.category}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-2">
+                      <strong>Eligibility:</strong> {scheme.eligibility_summary}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-2">
+                      <strong>Department:</strong> {scheme.department}
+                    </p>
+                    <a
+                      href="#"
+                      className="font-bold text-blue-500 hover:text-blue-700 transition"
+                    >
+                      Learn More &rarr;
+                    </a>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12 bg-white rounded-2xl shadow-lg">
+                <p className="text-gray-600 text-lg">
+                  No schemes found matching your criteria.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
