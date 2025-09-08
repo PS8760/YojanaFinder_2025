@@ -76,6 +76,13 @@ const Navbar = () => {
             Contact
             <span className="underline absolute h-0.5 w-0 bottom-0 left-0 bg-blue-700"></span>
           </Link>
+          <Link
+            to="/login"
+            className="nav-link relative h-8.5 font-stretch-125% text-blue-500 transition-colors duration-300"
+          >
+            Login/Register
+            <span className="underline absolute h-0.5 w-0 bottom-0 left-0 bg-blue-700"></span>
+          </Link>
         </div>
       </div>
     </>
