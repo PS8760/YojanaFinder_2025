@@ -116,7 +116,7 @@ const Contact = () => {
               </li>
               <li className="flex items-center">
                 <IconMail />
-                <span className="text-gray-300">spranav0812@gmail.com</span>
+                <span className="text-gray-300">23104115@apsit.edu.in</span>
               </li>
               <li className="flex items-center">
                 <IconLocation />
@@ -144,7 +144,7 @@ const Contact = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="John Doe"
+                  placeholder="Abhishek Jamdade"
                   required
                   className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 />
@@ -162,7 +162,7 @@ const Contact = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="you@example.com"
+                  placeholder="yojana@example.com"
                   required
                   className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 />

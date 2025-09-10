@@ -22,7 +22,7 @@ let Section1 = () => {
     <>
       <div
         ref={animeRef}
-        className=" h-145 mt-2 w-screen pt-0 pl-17 bg-amber-50"
+        className=" h-145 mt-15 w-screen pt-0 pl-17 bg-amber-50"
       >
         <div className="anime">
           <h1 className="relative justify-center font-light align-middle pt-20 text-8xl text-blue-500">

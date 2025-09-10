@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+// --- Firebase Imports ---
+import { auth } from "../../firebase/firebaseConfig"; // Import the auth instance from your firebase.js
+import { signInWithEmailAndPassword } from "firebase/auth"; // Import the login function
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
 
@@ -8,17 +11,44 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate(); // Hook for redirection after successful login
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, you would handle login logic here (e.g., call an API)
-    alert(`Attempting login with:\n\nEmail: ${formData.email}`);
-    setFormData({ email: "", password: "" });
+    setError(""); // Reset previous errors
+    setIsLoading(true); // Start loading state
+
+    try {
+      // Use the imported Firebase function to sign in the user
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+
+      const user = userCredential.user;
+      console.log("Successfully logged in user:", user.uid);
+
+      alert("Login successful! Redirecting to the schemes page...");
+      navigate("/schemes"); // Redirect user to the schemes page on success
+    } catch (firebaseError) {
+      console.error(
+        "Firebase login error:",
+        firebaseError.code,
+        firebaseError.message
+      );
+      // Provide a user-friendly error message
+      setError("Invalid email or password. Please try again.");
+    } finally {
+      setIsLoading(false); // End loading state
+    }
   };
 
   return (
@@ -57,7 +87,7 @@ const Login = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="you@example.com"
+                  placeholder="yojana@example.com"
                   required
                   className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 />
@@ -80,11 +110,20 @@ const Login = () => {
                   className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 />
               </div>
+
+              {/* Display Firebase errors here */}
+              {error && (
+                <p className="text-red-500 text-sm text-center -my-2">
+                  {error}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 text-lg shadow-md hover:shadow-lg transform hover:scale-105"
+                disabled={isLoading}
+                className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 text-lg shadow-md hover:shadow-lg transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Log In
+                {isLoading ? "Logging In..." : "Log In"}
               </button>
             </form>
             <p className="text-center text-gray-600 mt-6">

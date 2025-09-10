@@ -62,7 +62,10 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Navigation Links */}
             <div className="flex space-x-8">
-              <Link to="/about" className="hover:text-white transition-colors">
+              <Link
+                to="/aboutus"
+                className="hover:text-white transition-colors"
+              >
                 About Us
               </Link>
               <Link
@@ -91,7 +94,7 @@ const Footer = () => {
                 <FacebookIcon />
               </a>
               <a
-                href="https://twitter.com"
+                href="https://x.com/Ghodke8760"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
@@ -100,7 +103,7 @@ const Footer = () => {
                 <TwitterIcon />
               </a>
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/in/pranav-ghodke-09674632a/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"

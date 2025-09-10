@@ -27,15 +27,17 @@ const LoadingSpinner = () => (
 );
 
 const Schemes = () => {
-  // --- OPTIMIZATION 1: Consolidate all filter inputs into a single state object ---
+  // Consolidate all filter inputs into a single state object
   const [filters, setFilters] = useState({
     searchTerm: "",
+    userDescription: "", // New state for the description box
     categoryFilter: "All",
     stateFilter: "All",
     age: "",
     caste: "All",
     profession: "All",
     gender: "All",
+    standard: "All",
   });
 
   const [schemes, setSchemes] = useState([]);
@@ -43,34 +45,34 @@ const Schemes = () => {
   const [error, setError] = useState(null);
   const [showResults, setShowResults] = useState(false);
 
-  // --- OPTIMIZATION 2: Create a single handler for all filter changes ---
+  // A single handler for all filter changes
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      [name]: value,
-    }));
+    setFilters((prevFilters) => {
+      const newFilters = { ...prevFilters, [name]: value };
+      if (name === "profession") {
+        if (value !== "Entrepreneur") newFilters.categoryFilter = "All";
+        if (value !== "Student") newFilters.standard = "All";
+      }
+      return newFilters;
+    });
   };
 
-  // --- OPTIMIZATION 3: Use useCallback to memoize the search function ---
+  // Memoized search function to call the backend
   const handleSearch = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     if (!showResults) setShowResults(true);
 
     try {
-      // The frontend only needs to know its own backend's address
-      const backendUrl = "http://localhost:8080/api/schemes";
-
+      const backendUrl = "http://localhost:8091/api/schemes";
       const response = await fetch(backendUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Send the consolidated filters object as the body
         body: JSON.stringify(filters),
       });
 
       if (!response.ok) {
-        // Get more detailed error from backend if available
         const errorData = await response.json();
         throw new Error(errorData.error || `API Error: ${response.statusText}`);
       }
@@ -87,7 +89,19 @@ const Schemes = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [filters, showResults]); // Dependency array ensures the function is recreated only when filters change
+  }, [filters, showResults]);
+
+  // Determine which input sections should be disabled for a better UX
+  const isDescriptionActive = filters.userDescription.trim() !== "";
+  const isSearchTermActive = filters.searchTerm.trim() !== "";
+  const areFiltersActive =
+    filters.age ||
+    filters.gender !== "All" ||
+    filters.profession !== "All" ||
+    filters.caste !== "All" ||
+    filters.stateFilter !== "All" ||
+    filters.standard !== "All" ||
+    filters.categoryFilter !== "All";
 
   // Static options for dropdowns
   const categories = [
@@ -108,192 +122,253 @@ const Schemes = () => {
   ];
   const professions = [
     "All",
-    "Farmer",
     "Student",
-    "Unorganized Worker",
     "Entrepreneur",
+    "Farmer",
+    "Unorganized Worker",
   ];
   const castes = ["All", "General", "OBC", "SC", "ST"];
   const genders = ["All", "Male", "Female"];
+  const standards = [
+    "All",
+    "Nursery",
+    "School",
+    "High School",
+    "Undergraduation",
+    "Postgraduation",
+  ];
 
   return (
     <>
       <Navbar />
-      <div
-        className={`container mx-auto px-6 py-16 transition-all duration-500 ${
-          !showResults
-            ? "flex items-center justify-center min-h-[calc(100vh-200px)]"
-            : ""
-        }`}
-      >
-        <div className="w-full max-w-6xl">
+      <div className="container mx-auto px-6 py-16">
+        <div className="w-full max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
               Find Your Schemes with AI
             </h1>
             <p className="mt-4 text-lg max-w-3xl mx-auto text-gray-600">
-              Fill in your details below, and our AI will find the most relevant
-              government schemes for you.
+              Use one of the methods below to find relevant government schemes.
             </p>
           </div>
 
-          {/* Filter and Search Form */}
-          <div className="mb-12 p-8 bg-white rounded-2xl shadow-lg grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-2">
-              <label
-                htmlFor="searchTerm"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                Search by Name
-              </label>
-              <input
-                type="text"
-                id="searchTerm"
-                name="searchTerm"
-                placeholder="e.g., Ayushman Bharat"
-                className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                value={filters.searchTerm}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="age"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                Your Age
-              </label>
-              <input
-                type="number"
-                id="age"
-                name="age"
-                placeholder="e.g., 25"
-                className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                value={filters.age}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="gender"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                Gender
-              </label>
-              <select
-                id="gender"
-                name="gender"
-                className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                value={filters.gender}
-                onChange={handleFilterChange}
-              >
-                {genders.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="profession"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                Profession
-              </label>
-              <select
-                id="profession"
-                name="profession"
-                className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                value={filters.profession}
-                onChange={handleFilterChange}
-              >
-                {professions.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="caste"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                Caste
-              </label>
-              <select
-                id="caste"
-                name="caste"
-                className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                value={filters.caste}
-                onChange={handleFilterChange}
-              >
-                {castes.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="categoryFilter"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                Scheme Category
-              </label>
-              <select
-                id="categoryFilter"
-                name="categoryFilter"
-                className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                value={filters.categoryFilter}
-                onChange={handleFilterChange}
-              >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="stateFilter"
-                className="block mb-2 font-semibold text-gray-700"
-              >
-                State/Central
-              </label>
-              <select
-                id="stateFilter"
-                name="stateFilter"
-                className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                value={filters.stateFilter}
-                onChange={handleFilterChange}
-              >
-                {states.map((st) => (
-                  <option key={st} value={st}>
-                    {st}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="sm:col-span-2 lg:col-span-4">
-              <button
-                onClick={handleSearch}
-                disabled={isLoading}
-                className="w-full mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 text-lg shadow-md hover:shadow-lg transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {isLoading
-                  ? "Searching with AI..."
-                  : showResults
-                  ? "Update Results"
-                  : "Find Schemes"}
-              </button>
+          {/* --- NEW: Description Textarea Section --- */}
+          <div className="mb-8 p-8 bg-white rounded-2xl shadow-lg">
+            <label
+              htmlFor="userDescription"
+              className="block mb-2 font-semibold text-gray-700"
+            >
+              1. Describe Your Needs
+            </label>
+            <textarea
+              id="userDescription"
+              name="userDescription"
+              rows="4"
+              placeholder="e.g., 'I am a farmer in Maharashtra looking for a loan to buy a new tractor.'"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+              value={filters.userDescription}
+              onChange={handleFilterChange}
+              disabled={isSearchTermActive || areFiltersActive}
+            />
+          </div>
+
+          <p className="text-center text-gray-500 font-semibold my-6">OR</p>
+
+          {/* Search by Name Section */}
+          <div className="mb-8 p-8 bg-white rounded-2xl shadow-lg">
+            <label
+              htmlFor="searchTerm"
+              className="block mb-2 font-semibold text-gray-700"
+            >
+              2. Search by Name
+            </label>
+            <input
+              type="text"
+              id="searchTerm"
+              name="searchTerm"
+              placeholder="e.g., Ayushman Bharat"
+              className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+              value={filters.searchTerm}
+              onChange={handleFilterChange}
+              disabled={isDescriptionActive || areFiltersActive}
+            />
+          </div>
+
+          <p className="text-center text-gray-500 font-semibold my-6">OR</p>
+
+          {/* Filter Options Section */}
+          <div className="mb-8 p-8 bg-white rounded-2xl shadow-lg">
+            <h3 className="text-xl font-semibold text-gray-700 mb-6">
+              3. Filter by Criteria
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div>
+                <label
+                  htmlFor="age"
+                  className="block mb-2 font-semibold text-gray-700"
+                >
+                  Your Age
+                </label>
+                <input
+                  type="number"
+                  id="age"
+                  name="age"
+                  placeholder="e.g., 25"
+                  className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+                  value={filters.age}
+                  onChange={handleFilterChange}
+                  disabled={isDescriptionActive || isSearchTermActive}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="gender"
+                  className="block mb-2 font-semibold text-gray-700"
+                >
+                  Gender
+                </label>
+                <select
+                  id="gender"
+                  name="gender"
+                  className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+                  value={filters.gender}
+                  onChange={handleFilterChange}
+                  disabled={isDescriptionActive || isSearchTermActive}
+                >
+                  {genders.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="profession"
+                  className="block mb-2 font-semibold text-gray-700"
+                >
+                  Profession
+                </label>
+                <select
+                  id="profession"
+                  name="profession"
+                  className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+                  value={filters.profession}
+                  onChange={handleFilterChange}
+                  disabled={isDescriptionActive || isSearchTermActive}
+                >
+                  {professions.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="caste"
+                  className="block mb-2 font-semibold text-gray-700"
+                >
+                  Caste
+                </label>
+                <select
+                  id="caste"
+                  name="caste"
+                  className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+                  value={filters.caste}
+                  onChange={handleFilterChange}
+                  disabled={isDescriptionActive || isSearchTermActive}
+                >
+                  {castes.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="stateFilter"
+                  className="block mb-2 font-semibold text-gray-700"
+                >
+                  State/Central
+                </label>
+                <select
+                  id="stateFilter"
+                  name="stateFilter"
+                  className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+                  value={filters.stateFilter}
+                  onChange={handleFilterChange}
+                  disabled={isDescriptionActive || isSearchTermActive}
+                >
+                  {states.map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {filters.profession === "Entrepreneur" && (
+                <div className="transition-opacity duration-300">
+                  <label
+                    htmlFor="categoryFilter"
+                    className="block mb-2 font-semibold text-gray-700"
+                  >
+                    Business Category
+                  </label>
+                  <select
+                    id="categoryFilter"
+                    name="categoryFilter"
+                    className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+                    value={filters.categoryFilter}
+                    onChange={handleFilterChange}
+                    disabled={isDescriptionActive || isSearchTermActive}
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {filters.profession === "Student" && (
+                <div className="transition-opacity duration-300">
+                  <label
+                    htmlFor="standard"
+                    className="block mb-2 font-semibold text-gray-700"
+                  >
+                    Standard
+                  </label>
+                  <select
+                    id="standard"
+                    name="standard"
+                    className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-gray-200"
+                    value={filters.standard}
+                    onChange={handleFilterChange}
+                    disabled={isDescriptionActive || isSearchTermActive}
+                  >
+                    {standards.map((std) => (
+                      <option key={std} value={std}>
+                        {std}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Conditionally Rendered Schemes Grid */}
+          <div className="mb-12 text-center">
+            <button
+              onClick={handleSearch}
+              disabled={isLoading}
+              className="w-full max-w-md bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 text-lg shadow-md hover:shadow-lg transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Searching with AI..." : "Find Schemes"}
+            </button>
+          </div>
+
           {showResults && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {isLoading ? (
@@ -330,12 +405,16 @@ const Schemes = () => {
                       <p className="text-sm text-gray-500 mb-2">
                         <strong>Department:</strong> {scheme.department}
                       </p>
-                      <a
-                        href="#"
-                        className="font-bold text-blue-500 hover:text-blue-700 transition"
-                      >
-                        Learn More &rarr;
-                      </a>
+                      {scheme.website_url && (
+                        <a
+                          href={scheme.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-bold text-blue-500 hover:text-blue-700 transition"
+                        >
+                          Learn More &rarr;
+                        </a>
+                      )}
                     </div>
                   </div>
                 ))

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 
-// You can place these SVG components in a separate file or keep them here
+// --- SVG Icon Components ---
 const IconForm = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -17,7 +17,6 @@ const IconForm = () => (
     />
   </svg>
 );
-
 const IconSearch = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +33,6 @@ const IconSearch = () => (
     />
   </svg>
 );
-
 const IconBenefit = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -74,83 +72,29 @@ const Section3 = () => {
     },
   ];
 
-  const sectionRef = useRef(null);
-
-  useEffect(() => {
-    // Check if GSAP and ScrollTrigger are loaded from the CDN
-    if (window.gsap && window.ScrollTrigger) {
-      const gsap = window.gsap;
-      gsap.registerPlugin(window.ScrollTrigger);
-
-      const el = sectionRef.current;
-
-      // Animate the title when it enters the viewport
-      gsap.from(el.querySelector("h2"), {
-        opacity: 0,
-        y: 50,
-        duration: 0.8,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: el,
-          start: "top 80%", // Starts animation when 80% of the section is in view
-        },
-      });
-
-      // Animate the step cards with a stagger effect
-      gsap.from(gsap.utils.toArray(".step-card"), {
-        opacity: 0,
-        y: 50,
-        duration: 0.8,
-        ease: "power3.out",
-        stagger: 0.2, // Adds a 0.2s delay between each card's animation
-        scrollTrigger: {
-          trigger: el.querySelector(".steps-container"),
-          start: "top 80%",
-        },
-      });
-
-      // Add hover animations to each card
-      const cards = gsap.utils.toArray(".step-card");
-      cards.forEach((card) => {
-        card.addEventListener("mouseenter", () => {
-          gsap.to(card, {
-            y: -10,
-            scale: 1.03,
-            duration: 0.3,
-            ease: "power2.out",
-          });
-        });
-        card.addEventListener("mouseleave", () => {
-          gsap.to(card, { y: 0, scale: 1, duration: 0.3, ease: "power2.out" });
-        });
-      });
-    }
-  }, []);
-
   return (
-    <section
-      ref={sectionRef}
-      className="py-16 lg:py-24  bg-amber-50 overflow-hidden"
-    >
-      <div className="container h-130 mx-23 px-6">
-        {/* Section Title */}
-        <h2 className="text-[35px] -ml-5 pt-13 flex-box -space-x-10  font-light text-center text-gray-800">
-          How It Works in <br />
-        </h2>
-        <h2 className="flex-box text-blue-600 font-stretch-125% -mt-35 ml-110 text-[40px]">
-          <span className="text-[150px] -ml-16 -mt-12">3</span>{" "}
-        </h2>
-        <h2 className="text-[33px] font-stretch-125% text-blue-500 align-text-top ml-121 -mt-26 ">
-          Simple Steps
-        </h2>
+    <section className="relative z-[100] py-16 lg:py-24 bg-amber-50">
+      <div className="container mx-auto px-6">
+        <div className="mx-10 mb-16">
+          <h2 className="text-[35px] ml-7 pt-13 flex-box -space-x-10  font-light text-center text-gray-800">
+            How It Works in <br />
+          </h2>
+          <h2 className="flex-box text-blue-600 font-stretch-125% -mt-35 ml-110 text-[40px]">
+            <span className="text-[150px] -ml-16 -mt-12">3</span>{" "}
+          </h2>
+          <h2 className="text-[33px] font-stretch-125% text-blue-500 align-text-top ml-121 -mt-26 ">
+            Simple Steps
+          </h2>
+        </div>
+
         {/* Steps Container */}
-        <div className="steps-container mt-10 -ml-10 relative flex flex-col md:flex-row justify-center items-center gap-12 md:gap-8">
+        <div className="relative flex flex-col md:flex-row justify-center items-center gap-12 md:gap-8">
           {steps.map((step, index) => (
             <div
               key={index}
-              className="step-card relative z-10 flex flex-col items-center text-center max-w-sm"
+              className="relative z-10 flex flex-col items-center text-center max-w-sm"
             >
-              <div className="flex items-center justify-center w-24 h-24 bg-blue-500 rounded-full mb-4 shadow-lg">
+              <div className="flex items-center justify-center w-24 h-24 bg-blue-500 rounded-full mb-4 shadow-lg transform transition-transform duration-300 hover:scale-110">
                 {step.icon}
               </div>
               <h3 className="text-2xl font-bold text-gray-800 mb-2">

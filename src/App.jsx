@@ -6,6 +6,7 @@ import Schemes from "./Navbar_Pages/Schemes";
 import Login from "./Navbar_Pages/Login";
 import Home from "./Home";
 import Register from "./Navbar_Pages/Register";
+import AuthCheck from "./Navbar_Pages/AuthCheck";
 
 const App = () => {
   return (
@@ -15,9 +16,16 @@ const App = () => {
           <Route path="" element={<Home />} />
           <Route path="/aboutus" element={<AboutUs />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/schemes" element={<Schemes />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route
+            path="/schemes"
+            element={
+              <AuthCheck>
+                <Schemes />
+              </AuthCheck>
+            }
+          />
         </Routes>
       </div>
     </Router>

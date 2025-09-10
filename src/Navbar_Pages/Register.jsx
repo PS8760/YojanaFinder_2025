@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import Footer from "../components/Footer/Footer";
+import { Link, useNavigate } from "react-router-dom";
+// --- Firebase Imports ---
+import { auth, db } from "../../firebase/firebaseConfig"; // Import auth and firestore from your config
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore"; // Import functions to write to Firestore
 import Navbar from "../components/Navbar/Navbar";
+import Footer from "../components/Footer/Footer";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -12,30 +16,68 @@ const Register = () => {
     location: "",
     gender: "",
   });
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, you would handle registration logic here
-    alert(
-      `Creating account with the following details:\n\n${JSON.stringify(
-        formData,
-        null,
-        2
-      )}`
-    );
-    setFormData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      location: "",
-      gender: "",
-    });
+    setError("");
+    setIsLoading(true);
+
+    if (formData.password.length < 6) {
+      setError("Password should be at least 6 characters long.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Step 1: Create the user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const user = userCredential.user;
+
+      // Step 2: Save the additional user details to your Firestore database
+      // A new document is created in the "users" collection with the user's UID as the ID.
+      await setDoc(doc(db, "users", user.uid), {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        location: formData.location,
+        gender: formData.gender,
+        createdAt: new Date(), // Add a timestamp for when the account was created
+      });
+
+      console.log("Successfully created user and saved data to Firestore");
+      alert("Account created successfully! Please proceed to log in.");
+      navigate("/login"); // Redirect the user to the login page on success
+    } catch (firebaseError) {
+      console.error(
+        "Firebase registration error:",
+        firebaseError.code,
+        firebaseError.message
+      );
+      // Provide user-friendly error messages based on the error code
+      if (firebaseError.code === "auth/email-already-in-use") {
+        setError(
+          "This email address is already registered. Please log in or use a different email."
+        );
+      } else {
+        setError(
+          "Failed to create an account. Please check your details and try again."
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -75,7 +117,7 @@ const Register = () => {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    placeholder="John"
+                    placeholder="Abhishek"
                     required
                     className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                   />
@@ -93,7 +135,7 @@ const Register = () => {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    placeholder="Doe"
+                    placeholder="Jamdade"
                     required
                     className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                   />
@@ -130,7 +172,7 @@ const Register = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Minimum 8 characters"
+                  placeholder="Minimum 6 characters"
                   required
                   className="w-full p-3 bg-gray-100 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                 />
@@ -176,11 +218,19 @@ const Register = () => {
                   <option value="Other">Other</option>
                 </select>
               </div>
+
+              {error && (
+                <p className="text-red-500 text-sm text-center -my-2">
+                  {error}
+                </p>
+              )}
+
               <button
                 type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 text-lg shadow-md hover:shadow-lg transform hover:scale-105"
+                disabled={isLoading}
+                className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md transition duration-300 text-lg shadow-md hover:shadow-lg transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Create Account
+                {isLoading ? "Creating Account..." : "Create Account"}
               </button>
             </form>
             <p className="text-center text-gray-600 mt-6">

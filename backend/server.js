@@ -1,54 +1,46 @@
 import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
-import "dotenv/config"; // Loads .env file variables into process.env
-import rateLimit from "express-rate-limit"; // Import the rate-limiter package
+import "dotenv/config";
+import rateLimit from "express-rate-limit";
+// --- NEW: Import Firebase Admin SDK ---
+import admin from "firebase-admin";
 
-// --- 1. Server Setup ---
+// --- NEW: Load Service Account Key ---
+// Make sure you have the 'serviceAccountKey.json' file in your backend folder
+import serviceAccount from "./serviceAccountKey.json" assert { type: "json" };
+
+// --- NEW: Initialize Firebase Admin ---
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+const db = admin.firestore();
+
 const app = express();
-const port = 3010; // You can change this port if needed
+const port = process.env.PORT || 8080;
 
-// --- 2. Environment Variable Check ---
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// --- Check API Key ---
+const { GEMINI_API_KEY } = process.env;
 if (!GEMINI_API_KEY) {
-  console.error(
-    "FATAL ERROR: GEMINI_API_KEY is not defined in your .env file."
-  );
-  process.exit(1); // Exit the application
+  console.error("❌ GEMINI_API_KEY missing in .env file");
+  process.exit(1);
 }
 
-// --- 3. Middleware ---
+// --- Middleware ---
 app.use(cors());
 app.use(express.json());
 
-// --- 4. Rate Limiter ---
-// A middleware to prevent API abuse by limiting request frequency.
-// This is set to 15 requests per minute, matching the Gemini free tier limit.
+// --- Rate Limiter ---
 const apiLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 15, // Limit each IP to 15 requests per window
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  message: {
-    error: "Too many requests from this IP, please try again after a minute.",
-  },
+  windowMs: 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Try again later." },
 });
 
-// --- 5. Routes ---
-
-/**
- * Health Check Route
- */
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome! The Yojana Finder API is running correctly." });
-});
-
-/**
- * Main API Endpoint for Fetching Schemes
- * This route is now protected by the rate limiter.
- */
-app.post("/api/schemes", apiLimiter, async (req, res) => {
-  // Destructure all expected filter criteria from the request body.
+// --- Prompt Builder ---
+function buildPrompt(filters) {
   const {
     age,
     gender,
@@ -57,95 +49,155 @@ app.post("/api/schemes", apiLimiter, async (req, res) => {
     stateFilter,
     categoryFilter,
     searchTerm,
-  } = req.body;
+    standard,
+  } = filters;
 
-  // Dynamically build a detailed prompt based on the user's input.
-  let prompt = `Find relevant government schemes in India based on the following user profile.`;
-  if (age) prompt += ` The user is ${age} years old.`;
-  if (gender && gender !== "All") prompt += ` Their gender is ${gender}.`;
-  if (caste && caste !== "All")
-    prompt += ` They belong to the ${caste} category.`;
+  if (searchTerm?.trim()) {
+    return `Find an Indian government scheme with the name "${searchTerm}". 
+Provide details only for this scheme. 
+Always include the official or trusted government website URL related to the scheme.`;
+  }
+
+  let prompt = `Find relevant government schemes in India based on this user profile:`;
+  if (age) prompt += ` Age: ${age}.`;
+  if (gender && gender !== "All") prompt += ` Gender: ${gender}.`;
+  if (caste && caste !== "All") prompt += ` Caste: ${caste}.`;
   if (profession && profession !== "All")
-    prompt += ` Their profession is ${profession}.`;
+    prompt += ` Profession: ${profession}.`;
+  if (profession === "Student" && standard && standard !== "All")
+    prompt += ` Standard: ${standard}.`;
   if (stateFilter && stateFilter !== "All")
-    prompt += ` They are looking for schemes in the state of ${stateFilter} or Central schemes.`;
+    prompt += ` State: ${stateFilter} or Central schemes.`;
   if (categoryFilter && categoryFilter !== "All")
-    prompt += ` The schemes should be related to the category of ${categoryFilter}.`;
-  if (searchTerm)
-    prompt += ` The scheme name might contain the term "${searchTerm}".`;
-  prompt += ` Prioritize schemes that most closely match these criteria. Make the descriptions and eligibility summaries clear and concise for a general audience. If no schemes are found, return an empty array [].`;
+    prompt += ` Category: ${categoryFilter}.`;
 
-  // Define the exact JSON structure we expect from the AI model.
-  const schema = {
-    type: "ARRAY",
-    items: {
-      type: "OBJECT",
-      properties: {
-        name: { type: "STRING" },
-        description: { type: "STRING" },
-        department: { type: "STRING" },
-        category: { type: "STRING" },
-        eligibility_summary: { type: "STRING" },
-      },
-      required: [
-        "name",
-        "description",
-        "department",
-        "category",
-        "eligibility_summary",
-      ],
-    },
-  };
+  return `${prompt} 
+Make the descriptions and eligibility summaries clear and concise for general users. 
+Each scheme must include:
+- name
+- description
+- department
+- category
+- eligibility_summary
+- url (official or trusted government website related to the scheme)
 
+If no schemes are found, return an empty array [].`;
+}
+
+// --- Routes ---
+app.get("/", (_, res) => {
+  res.json({ message: "✅ Yojana Finder API is running" });
+});
+
+app.post("/api/schemes", apiLimiter, async (req, res) => {
   try {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ error: "Request body cannot be empty." });
+    }
 
-    const payload = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: schema,
+    const prompt = buildPrompt(req.body);
+
+    const schema = {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          name: { type: "STRING" },
+          description: { type: "STRING" },
+          department: { type: "STRING" },
+          category: { type: "STRING" },
+          eligibility_summary: { type: "STRING" },
+          url: { type: "STRING" }, // ✅ Added website field
+        },
+        required: [
+          "name",
+          "description",
+          "department",
+          "category",
+          "eligibility_summary",
+          "url",
+        ],
       },
-      tools: [{ google_search: {} }], // Use Google Search for real-time, accurate info
     };
 
-    const geminiResponse = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    // --- Call Gemini API ---
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: schema,
+          },
+        }),
+      }
+    );
 
-    if (!geminiResponse.ok) {
-      const errorDetails = await geminiResponse.json();
-      console.error("Gemini API Error Details:", errorDetails);
-      throw new Error(`Gemini API Error: ${geminiResponse.statusText}`);
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || response.statusText);
     }
 
-    const result = await geminiResponse.json();
+    const result = await response.json();
+    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!result.candidates || !result.candidates[0].content.parts[0].text) {
-      throw new Error("Invalid response structure from Gemini API.");
-    }
+    if (!text) throw new Error("Invalid response from Gemini API");
 
-    const jsonText = result.candidates[0].content.parts[0].text;
-    const parsedSchemes = JSON.parse(jsonText);
-
-    res.json(parsedSchemes);
+    res.json(JSON.parse(text));
   } catch (error) {
-    console.error("--- Backend Error Log ---");
-    console.error("Timestamp:", new Date().toISOString());
-    console.error("Request Body:", req.body);
-    console.error("Error Object:", error);
-    console.error("--- End of Log ---");
-
-    res.status(500).json({
-      error:
-        "Failed to fetch schemes from the AI model. Please check server logs for details.",
-    });
+    console.error("❌ Backend Error:", error.message);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch schemes. Please try again later." });
   }
 });
 
-// --- 6. Start Server ---
+// --- NEW: User Registration Endpoint ---
+app.post("/api/register", async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, location, gender } = req.body;
+
+    // Step 1: Create user in Firebase Authentication
+    const userRecord = await admin.auth().createUser({
+      email: email,
+      password: password,
+      displayName: `${firstName} ${lastName}`,
+    });
+
+    // Step 2: Save additional user data in Firestore
+    const userData = {
+      firstName,
+      lastName,
+      email,
+      location,
+      gender,
+      createdAt: new Date().toISOString(),
+    };
+    // Use the user's unique ID (uid) from Auth as the document ID
+    await db.collection("users").doc(userRecord.uid).set(userData);
+
+    res.status(201).json({
+      message: "User created successfully!",
+      uid: userRecord.uid,
+    });
+  } catch (error) {
+    console.error("❌ Registration Error:", error.message);
+    // Provide a more specific error message to the frontend
+    if (error.code === "auth/email-already-exists") {
+      return res
+        .status(400)
+        .json({ error: "This email address is already in use." });
+    }
+    res
+      .status(500)
+      .json({ error: "Failed to register user. Please try again later." });
+  }
+});
+
+// --- Start Server ---
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`🚀 Server running at http://localhost:${port}`);
 });

@@ -1,91 +1,133 @@
-import React, { useRef } from "react";
-import { Link } from "react-router-dom";
-import Footer from "../Footer/Footer";
-import { useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+// --- Firebase Imports ---
+import { auth } from "../../../firebase/firebaseConfig"; // Adjust this path to your firebase.js config file
+import { onAuthStateChanged, signOut } from "firebase/auth";
+
 const Navbar = () => {
-  const navRef = useRef();
+  const navRef = useRef(null);
+  const navigate = useNavigate();
+  // State to hold the current user's authentication status
+  const [user, setUser] = useState(null);
 
-  useEffect(
-    () => {
-      if (window.gsap) {
-        const gsap = window.gsap;
+  // Effect to listen for authentication state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser); // If user is logged in, currentUser is an object; otherwise, it's null
+    });
 
-        const links = gsap.utils.toArray(".nav-link", navRef.current);
+    // Cleanup the listener when the component unmounts
+    return () => unsubscribe();
+  }, []);
 
-        links.forEach((link) => {
-          const underline = link.querySelector(".underline");
+  // GSAP animation for link underlines
+  useEffect(() => {
+    if (window.gsap && navRef.current) {
+      const gsap = window.gsap;
+      // We select only the links, not the logout button
+      const links = gsap.utils.toArray(".nav-link", navRef.current);
 
-          link.addEventListener("mouseenter", () => {
-            gsap.to(underline, {
-              width: "100%",
-              duration: 0.3,
-              ease: "power2.out",
-            });
-          });
-
-          link.addEventListener("mouseleave", () => {
-            gsap.to(underline, {
-              width: "0%",
-              duration: 0.3,
-              ease: "power2.inOut",
-            });
+      links.forEach((link) => {
+        const underline = link.querySelector(".underline");
+        // ... (GSAP animation code remains the same)
+        link.addEventListener("mouseenter", () => {
+          gsap.to(underline, {
+            width: "100%",
+            duration: 0.3,
+            ease: "power2.out",
           });
         });
-      }
-    },
-    { scope: navRef }
-  );
+        link.addEventListener("mouseleave", () => {
+          gsap.to(underline, {
+            width: "0%",
+            duration: 0.3,
+            ease: "power2.inOut",
+          });
+        });
+      });
+    }
+  }, [user]); // Re-run GSAP setup if the user logs in/out, to correctly target links
+
+  // Function to handle user logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      console.log("User logged out successfully");
+      navigate("/login"); // Redirect to login page after logout
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   return (
-    <>
-      <div className="ml-17 mt-6 h-20 w-315 flex p-3 bg-gray-800 rounded-3xl">
-        <div className=" h-10 w-full text-3xl pl-4 pt-2 justify-center font-stretch-125%  items-center text-blue-500 duration-300 ">
-          <h1 className=" hover:text-blue-700 w-53 bg-transparent">
+    <header className="relative top-4 h-20 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-50">
+      <div className="flex items-center justify-between p-4 bg-gray-800 rounded-2xl shadow-lg">
+        {/* Logo / Brand Name */}
+        <div className="font-stretch-125% text-3xl text-blue-500">
+          <Link
+            to="/"
+            className=" hover:text-blue-700 transition-colors duration-300"
+          >
             Yojana Finder
-          </h1>
+          </Link>
         </div>
-        <div
+
+        {/* Navigation Links */}
+        <nav
           ref={navRef}
-          className="nav-link flex align-middle mr-12 text-center text-xl space-x-12 pt-3"
+          className="flex items-center font-stretch-125% text-xl space-x-12"
         >
           <Link
             to="/"
-            className="nav-link relative h-8.5 font-stretch-125% text-blue-500   transition-colors duration-300 "
+            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
           >
             Home
-            <span className="underline absolute h-0.5 w-0 bottom-0 left-0 bg-blue-700"></span>
+            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
           </Link>
           <Link
             to="/schemes"
-            className="nav-link relative h-8.5 font-stretch-125% text-blue-500  transition-colors duration-300"
+            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
           >
             Schemes
-            <span className="underline absolute h-0.5 w-0 bottom-0 left-0 bg-blue-700"></span>
+            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
           </Link>
           <Link
             to="/aboutus"
-            className="nav-link relative h-8.5 font-stretch-125% text-blue-500  w-25 transition-colors duration-300"
+            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
           >
             About Us
-            <span className="underline absolute h-0.5 w-0 bottom-0 left-0 bg-blue-700"></span>
+            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
           </Link>
           <Link
             to="/contact"
-            className="nav-link relative h-8.5 font-stretch-125% text-blue-500 transition-colors duration-300"
+            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
           >
             Contact
-            <span className="underline absolute h-0.5 w-0 bottom-0 left-0 bg-blue-700"></span>
+            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
           </Link>
-          <Link
-            to="/login"
-            className="nav-link relative h-8.5 font-stretch-125% text-blue-500 transition-colors duration-300"
-          >
-            Login/Register
-            <span className="underline absolute h-0.5 w-0 bottom-0 left-0 bg-blue-700"></span>
-          </Link>
-        </div>
+
+          {/* --- Conditional Auth Link/Button --- */}
+          {user ? (
+            // If a user is logged in, show the Logout button
+            <button
+              onClick={handleLogout}
+              className="relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
+            >
+              Logout
+            </button>
+          ) : (
+            // If no user is logged in, show the Login/Register link
+            <Link
+              to="/login"
+              className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
+            >
+              Login/Register
+              <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
+            </Link>
+          )}
+        </nav>
       </div>
-    </>
+    </header>
   );
 };
 
