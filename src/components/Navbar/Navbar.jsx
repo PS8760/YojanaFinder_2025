@@ -111,9 +111,10 @@ const Navbar = () => {
             // If a user is logged in, show the Logout button
             <button
               onClick={handleLogout}
-              className="relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
+              className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
             >
               Logout
+              <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
             </button>
           ) : (
             // If no user is logged in, show the Login/Register link
