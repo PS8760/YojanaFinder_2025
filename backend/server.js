@@ -82,6 +82,34 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+// --- Contact Form Route ---
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ error: "All fields are required." });
+    }
+
+    const contactData = {
+      name,
+      email,
+      subject,
+      message,
+      createdAt: new Date().toISOString(),
+    };
+
+    await db.collection("contacts").add(contactData);
+
+    res
+      .status(201)
+      .json({ message: "📩 Contact form submitted successfully!" });
+  } catch (error) {
+    console.error("❌ Contact Form Error:", error.message);
+    res.status(500).json({ error: "Failed to submit contact form." });
+  }
+});
+
 // --- Start Server ---
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);

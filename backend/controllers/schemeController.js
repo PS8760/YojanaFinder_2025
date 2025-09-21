@@ -1,23 +1,19 @@
-import { callLLM } from "../llm/llm.js";
+import fetch from "node-fetch";
 
 export const getSchemes = async (req, res) => {
   try {
-    const { description } = req.body;
+    const body = req.body;
 
-    if (!description) {
-      return res.status(400).json({ error: "Description is required" });
-    }
+    const response = await fetch("http://localhost:8091/api/schemes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-    // Call Gemini (or other LLM) to process user description
-    const schemes = await callLLM(description);
-
-    if (!schemes || schemes.length === 0) {
-      return res.json({ message: "No schemes found matching your criteria." });
-    }
-
-    res.json({ schemes });
+    const data = await response.json();
+    res.json(data);
   } catch (error) {
-    console.error("Error fetching schemes:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error in getSchemes:", error);
+    res.status(500).json({ error: "Failed to fetch schemes" });
   }
 };

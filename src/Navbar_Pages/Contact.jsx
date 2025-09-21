@@ -72,13 +72,23 @@ const Contact = () => {
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, you would handle form submission here,
-    // e.g., send the data to an API endpoint.
-    alert(`Form submitted!\n\nData: ${JSON.stringify(formData)}`);
-    // Optionally, reset the form
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    try {
+      const res = await fetch("http://localhost:8091/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      alert(data.message);
+
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      alert("Failed to submit form. Try again later.");
+      console.error(error);
+    }
   };
 
   return (
