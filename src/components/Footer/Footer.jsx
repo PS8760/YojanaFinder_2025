@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../../utils/i18n.jsx";
 
 // --- SVG Icons for Social Media ---
 const FacebookIcon = () => (
@@ -44,46 +45,51 @@ const LinkedInIcon = () => (
 );
 
 const Footer = () => {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-gray-800 text-gray-300">
-      <div className="container mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
           {/* Website Info */}
-          <div className="mb-8 md:mb-0">
-            <h3 className="text-2xl font-stretch-125% hover:text-blue-700 text-blue-500 ">
+          <div className="mb-6 md:mb-0">
+            <h3 className="text-xl font-stretch-125% hover:text-blue-700 text-blue-500 mb-2">
               Yojana Finder
             </h3>
-            <p className="text-gray-400 mt-2">
-              Connecting every Indian to their opportunity.
+            <p className="text-gray-400 text-sm">
+              {t('footerDescription')}
             </p>
           </div>
 
-          {/* Links and Social */}
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            {/* Navigation Links */}
-            <div className="flex space-x-8">
+          {/* Quick Links */}
+          <div className="mb-6 md:mb-0">
+            <h4 className="text-lg font-semibold text-white mb-3">{t('quickLinks')}</h4>
+            <div className="flex flex-col space-y-2">
               <Link
                 to="/aboutus"
-                className="hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors text-sm"
               >
-                About Us
+                {t('aboutUs')}
               </Link>
               <Link
                 to="/contact"
-                className="hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors text-sm"
               >
-                Contact
+                {t('contact')}
               </Link>
               <Link
-                to="/privacy"
-                className="hover:text-white transition-colors"
+                to="/schemes"
+                className="text-gray-400 hover:text-white transition-colors text-sm"
               >
-                Privacy Policy
+                {t('schemes')}
               </Link>
             </div>
+          </div>
 
-            {/* Social Media Icons (These remain as anchor tags for external links) */}
-            <div className="flex space-x-6">
+          {/* Social Media */}
+          <div className="mb-6 md:mb-0">
+            <h4 className="text-lg font-semibold text-white mb-3">{t('followUs')}</h4>
+            <div className="flex justify-center md:justify-start space-x-4">
               <a
                 href="https://facebook.com"
                 target="_blank"
@@ -116,10 +122,12 @@ const Footer = () => {
         </div>
 
         {/* Bottom Copyright Notice */}
-        <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-500">
-          <p>
-            &copy; {new Date().getFullYear()} Yojana Finder. All Rights
-            Reserved.
+        <div className="border-t border-gray-700 mt-6 pt-6 text-center">
+          <p className="text-gray-500 text-sm">
+            &copy; {new Date().getFullYear()} Yojana Finder. {t('allRightsReserved')}
+          </p>
+          <p className="text-gray-500 text-sm mt-1">
+            {t('madeWithLove')}
           </p>
         </div>
       </div>

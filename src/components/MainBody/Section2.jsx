@@ -1,26 +1,38 @@
-import React from "react";
+import { useLanguage } from "../../utils/i18n.jsx";
 import FeaturesCard from "../Card/FeaturesCard";
 
 const Section2 = () => {
+  const { t } = useLanguage();
+
   return (
-    <>
-      <div className="h-screen -mt-5 pl-20 overflow-hidden  bg-amber-50">
-        <div className="flexbox h-100 w-150 pt-40 pl-10">
-          <h1 className="relative text-[150px]">
-            Why <br />
-            <h2 className="font-stretch-125% -mt-8 ml-6 hover:text-blue-700  text-4xl text-blue-500">
-              Yojana Finder
+    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 bg-amber-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+          {/* Left Side - Title */}
+          <div className="text-center lg:text-left relative">
+            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[150px] font-light text-gray-800 leading-none">
+              {t('whyTitle')}
+            </h1>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-stretch-125% text-blue-500 hover:text-blue-700 transition-colors duration-300 mt-4">
+              {t('whySubtitle')}
             </h2>
-            <p className="absolute font-stretch-125% text-black h-70 w-50 -top-25 ml-58 text-[290px] ">
-              ?
-            </p>
-          </h1>
-        </div>
-        <div className="flex z-100 -mt-105 ml-135 h-full w-200">
-          <FeaturesCard />
+
+            {/* Question Mark */}
+            <div className="absolute -top-4 sm:-top-8 md:-top-12 lg:-top-16 right-0 lg:right-[-50px] xl:right-[-100px]">
+              <span className="text-8xl sm:text-9xl md:text-[200px] lg:text-[250px] xl:text-[290px] font-light text-gray-300 select-none">
+                ?
+              </span>
+            </div>
+          </div>
+
+          {/* Right Side - Features */}
+          <div>
+            <FeaturesCard />
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

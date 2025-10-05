@@ -1,42 +1,42 @@
-import { useGSAP } from "@gsap/react";
-import React, { useRef } from "react";
-import { gsap } from "gsap";
+import { Link } from "react-router-dom";
+import { useLanguage } from "../../utils/i18n.jsx";
 
-let Section1 = () => {
-  let animeRef = useRef(null);
-
-  useGSAP(
-    () => {
-      gsap.from(".anime", {
-        y: 20,
-        opacity: 0,
-        ease: "power2.out",
-        duration: 1,
-        stagger: 0.2,
-      });
-    },
-    { scope: animeRef }
-  );
+const Section1 = () => {
+  const { t } = useLanguage();
 
   return (
-    <>
-      <div
-        ref={animeRef}
-        className=" h-145 mt-15 w-screen pt-0 pl-17 bg-amber-50"
-      >
-        <div className="anime">
-          <h1 className="relative justify-center font-light align-middle pt-20 text-8xl text-blue-500">
-            Connecting Every Indian to Their
-            <div className="anime flex pl-105">Opportunity</div>
-            <div className="anime relative h-18 w-190 text-center text-4xl mt-10 ml-70 px-4 py-4 rounded-[32px] bg-gradient-to-r from-blue-500 to-cyan-500 ">
-              <p className="text-amber-50">
-                Government benefits, simplified for everyone
-              </p>
-            </div>
-          </h1>
+    <div className="min-h-screen w-full pt-0 px-4 sm:px-6 lg:px-8 bg-amber-50 flex items-center justify-center">
+      <div className="text-center max-w-6xl mx-auto">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-blue-500 leading-tight mb-2">
+          {t('heroTitle1')} {t('heroTitle2')} {t('heroTitle3')}
+        </h1>
+        <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-blue-500 leading-tight mb-6">
+          {t('heroTitle4')}
+        </div>
+        <div className="inline-block max-w-3xl mx-auto px-4 py-3 sm:px-6 sm:py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-500 hover:scale-105 transition-transform duration-300 shadow-lg">
+          <p className="text-white text-base sm:text-lg md:text-xl lg:text-2xl font-medium">
+            {t('heroSubtitle')}
+          </p>
+        </div>
+
+        {/* Call to Action Buttons */}
+        <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center">
+          <Link
+            to="/schemes"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+          >
+            <span className="text-base sm:text-lg">{t('findSchemes')}</span>
+          </Link>
+
+          <Link
+            to="/aboutus"
+            className="px-6 py-3 border-2 border-blue-600 text-blue-600 font-semibold rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 text-base sm:text-lg"
+          >
+            {t('learnMore')}
+          </Link>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

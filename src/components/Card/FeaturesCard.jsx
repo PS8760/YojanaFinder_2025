@@ -1,8 +1,6 @@
-import React from "react";
+import { useLanguage } from "../../utils/i18n.jsx";
 
-// --- SVG Icon Components ---
-// It's good practice to keep icons as separate components.
-
+// SVG Icon Components
 const IconSimplified = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -71,59 +69,54 @@ const IconTime = () => (
   </svg>
 );
 
-// --- The Main FeaturesCard Component ---
 const FeaturesCard = () => {
+  const { t } = useLanguage();
+
   const features = [
     {
       icon: <IconSimplified />,
-      title: "Simplified Search",
-      description:
-        "We translate complex government jargon into simple, clear information for you.",
+      title: t('aiPowered'),
+      description: t('aiDescription'),
     },
     {
       icon: <IconPersonalized />,
-      title: "Personalized For You",
-      description:
-        "Our platform filters schemes to show only what you’re eligible for.",
+      title: t('personalized'),
+      description: t('personalizedDescription'),
     },
     {
       icon: <IconDatabase />,
-      title: "All Schemes in One Place",
-      description:
-        "We consolidate schemes from all departments so you don’t have to search elsewhere.",
+      title: t('comprehensive'),
+      description: t('comprehensiveDescription'),
     },
     {
       icon: <IconTime />,
-      title: "Save Time & Effort",
-      description:
-        "Stop wasting hours on confusing websites. Find exactly what you need in minutes.",
+      title: t('realtime'),
+      description: t('realtimeDescription'),
     },
   ];
 
   return (
-    <section className="h-screen w-full bg-amber-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-6xl p-8 sm:p-10 bg-transparent rounded-2xl ">
-        {/* Title */}
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 text-gray-800">
-          Our Core Features
-        </h2>
-        {/* Responsive Grid for Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-white p-8 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center"
-            >
-              <div className="mb-5">{feature.icon}</div>
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </div>
-          ))}
-        </div>
+    <div className="w-full max-w-4xl mx-auto p-4">
+      {/* Title */}
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 lg:mb-10 text-gray-800">
+        {t('ourCoreFeatures')}
+      </h2>
+      {/* Responsive Grid for Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+        {features.map((feature, index) => (
+          <div
+            key={index}
+            className="bg-white p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex flex-col items-center text-center"
+          >
+            <div className="mb-5">{feature.icon}</div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">
+              {feature.title}
+            </h3>
+            <p className="text-sm sm:text-base text-gray-600">{feature.description}</p>
+          </div>
+        ))}
       </div>
-    </section>
+    </div>
   );
 };
 

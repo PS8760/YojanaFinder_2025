@@ -1,6 +1,6 @@
-import React from "react";
+import { useLanguage } from "../../utils/i18n.jsx";
 
-// --- SVG Icon Components ---
+// SVG Icon Components
 const IconForm = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -17,6 +17,7 @@ const IconForm = () => (
     />
   </svg>
 );
+
 const IconSearch = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -33,6 +34,7 @@ const IconSearch = () => (
     />
   </svg>
 );
+
 const IconBenefit = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -51,40 +53,44 @@ const IconBenefit = () => (
 );
 
 const Section3 = () => {
+  const { t } = useLanguage();
+
   const steps = [
     {
       icon: <IconForm />,
-      title: "Fill Your Details",
-      description:
-        "Provide some basic information like your profession, age, and state so we can find schemes relevant to you.",
+      title: t('step1Title'),
+      description: t('step1Description'),
     },
     {
       icon: <IconSearch />,
-      title: "Get Matched",
-      description:
-        "Our smart algorithm instantly filters through hundreds of schemes to find the ones you are eligible for.",
+      title: t('step2Title'),
+      description: t('step2Description'),
     },
     {
       icon: <IconBenefit />,
-      title: "Apply & Benefit",
-      description:
-        "Review the scheme details, understand the benefits, and get guidance on how to apply directly.",
+      title: t('step3Title'),
+      description: t('step3Description'),
     },
   ];
 
   return (
     <section className="relative z-[100] py-16 lg:py-24 bg-amber-50">
       <div className="container mx-auto px-6">
-        <div className="mx-10 mb-16">
-          <h2 className="text-[35px] ml-7 pt-13 flex-box -space-x-10  font-light text-center text-gray-800">
-            How It Works in <br />
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light text-gray-800 mb-4">
+            {t('howItWorks')}
           </h2>
-          <h2 className="flex-box text-blue-600 font-stretch-125% -mt-35 ml-110 text-[40px]">
-            <span className="text-[150px] -ml-16 -mt-12">3</span>{" "}
-          </h2>
-          <h2 className="text-[33px] font-stretch-125% text-blue-500 align-text-top ml-121 -mt-26 ">
-            Simple Steps
-          </h2>
+
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <span className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+              3
+            </span>
+            <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-blue-600">
+              {t('simpleSteps')}
+            </h3>
+          </div>
+
+          <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
         </div>
 
         {/* Steps Container */}

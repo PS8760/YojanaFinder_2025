@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebase/firebaseConfig"; // Import auth from your Firebase config
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
+import Loading from "../components/Loading";
 
 /**
  * A component that wraps content and only displays it if a user is authenticated.
@@ -27,9 +28,13 @@ const AuthCheck = ({ children }) => {
   // Display a loading message while Firebase checks the auth status
   if (isAuthenticating) {
     return (
-      <div className="flex justify-center items-center h-full py-20">
-        <p className="text-lg text-gray-600">Loading...</p>
-      </div>
+      <>
+        <Navbar />
+        <div className="min-h-screen flex justify-center items-center bg-amber-50">
+          <Loading message="Checking authentication..." />
+        </div>
+        <Footer />
+      </>
     );
   }
 

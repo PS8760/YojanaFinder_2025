@@ -1,52 +1,43 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-// --- Firebase Imports ---
-import { auth } from "../../../firebase/firebaseConfig"; // Adjust this path to your firebase.js config file
+import { auth, db } from "../../../firebase/firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { useLanguage } from "../../utils/i18n.jsx";
+import LanguageSelector from "../LanguageSelector";
 
 const Navbar = () => {
   const navRef = useRef(null);
   const navigate = useNavigate();
-  // State to hold the current user's authentication status
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Effect to listen for authentication state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser); // If user is logged in, currentUser is an object; otherwise, it's null
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Load user profile data
+        try {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            setUserProfile(userDoc.data());
+          }
+        } catch (error) {
+          console.error("Error loading user profile:", error);
+        }
+      } else {
+        setUserProfile(null);
+      }
     });
 
     // Cleanup the listener when the component unmounts
     return () => unsubscribe();
   }, []);
 
-  // GSAP animation for link underlines
-  useEffect(() => {
-    if (window.gsap && navRef.current) {
-      const gsap = window.gsap;
-      // We select only the links, not the logout button
-      const links = gsap.utils.toArray(".nav-link", navRef.current);
 
-      links.forEach((link) => {
-        const underline = link.querySelector(".underline");
-        // ... (GSAP animation code remains the same)
-        link.addEventListener("mouseenter", () => {
-          gsap.to(underline, {
-            width: "100%",
-            duration: 0.3,
-            ease: "power2.out",
-          });
-        });
-        link.addEventListener("mouseleave", () => {
-          gsap.to(underline, {
-            width: "0%",
-            duration: 0.3,
-            ease: "power2.inOut",
-          });
-        });
-      });
-    }
-  }, [user]); // Re-run GSAP setup if the user logs in/out, to correctly target links
 
   // Function to handle user logout
   const handleLogout = async () => {
@@ -59,75 +50,198 @@ const Navbar = () => {
     }
   };
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (userProfile?.firstName) {
+      return `${userProfile.firstName} ${userProfile.lastName || ''}`.trim();
+    }
+    if (user?.displayName) {
+      return user.displayName;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'User';
+  };
+
   return (
-    <header className="relative top-4 h-20 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-50">
+    <header className="relative top-4 h-auto left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-50">
       <div className="flex items-center justify-between p-4 bg-gray-800 rounded-2xl shadow-lg">
         {/* Logo / Brand Name */}
-        <div className="font-stretch-125% text-3xl text-blue-500">
+        <div className="font-stretch-125% text-2xl md:text-3xl text-blue-500">
           <Link
             to="/"
-            className=" hover:text-blue-700 transition-colors duration-300"
+            className="hover:text-blue-700 transition-colors duration-300"
           >
             Yojana Finder
           </Link>
         </div>
 
-        {/* Navigation Links */}
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden text-blue-500 hover:text-blue-700 transition-colors"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isMobileMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+          </svg>
+        </button>
+
+        {/* Desktop Navigation Links */}
         <nav
           ref={navRef}
-          className="flex items-center font-stretch-125% text-xl space-x-12"
+          className="hidden md:flex items-center font-stretch-125% text-lg space-x-8"
         >
           <Link
             to="/"
-            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
+            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300 group"
           >
-            Home
-            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
+            {t('home')}
+            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700 transition-all duration-300 group-hover:w-full"></span>
           </Link>
           <Link
             to="/schemes"
-            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
+            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300 group"
           >
-            Schemes
-            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
+            {t('schemes')}
+            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700 transition-all duration-300 group-hover:w-full"></span>
           </Link>
           <Link
             to="/aboutus"
-            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
+            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300 group"
           >
-            About Us
-            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
+            {t('aboutUs')}
+            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700 transition-all duration-300 group-hover:w-full"></span>
           </Link>
           <Link
             to="/contact"
-            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
+            className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300 group"
           >
-            Contact
-            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
+            {t('contact')}
+            <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700 transition-all duration-300 group-hover:w-full"></span>
           </Link>
 
-          {/* --- Conditional Auth Link/Button --- */}
+          <LanguageSelector />
+
           {user ? (
-            // If a user is logged in, show the Logout button
-            <button
-              onClick={handleLogout}
-              className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
-            >
-              Logout
-              <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center space-x-2 text-blue-500 hover:text-blue-700 transition-colors duration-300"
+              >
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                  {getUserDisplayName().charAt(0).toUpperCase()}
+                </div>
+                <span className="hidden lg:block">{getUserDisplayName()}</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                  <Link
+                    to="/profile"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    My Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setShowUserMenu(false);
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    {t('logout')}
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            // If no user is logged in, show the Login/Register link
             <Link
               to="/login"
-              className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300"
+              className="nav-link relative text-blue-500 hover:text-blue-700 transition-colors duration-300 group"
             >
-              Login/Register
-              <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700"></span>
+              {t('login')}
+              <span className="underline absolute bottom-0 left-0 w-0 h-0.5 bg-blue-700 transition-all duration-300 group-hover:w-full"></span>
             </Link>
           )}
         </nav>
       </div>
+
+      {/* Mobile Navigation Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden mt-2 bg-gray-800 rounded-2xl shadow-lg p-4">
+          <nav className="flex flex-col space-y-4 font-stretch-125% text-lg">
+            <Link
+              to="/"
+              className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Home
+            </Link>
+            <Link
+              to="/schemes"
+              className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Schemes
+            </Link>
+            <Link
+              to="/aboutus"
+              className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              About Us
+            </Link>
+            <Link
+              to="/contact"
+              className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Contact
+            </Link>
+            {user ? (
+              <>
+                <div className="flex items-center space-x-2 py-2">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    {getUserDisplayName().charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-blue-500">{getUserDisplayName()}</span>
+                </div>
+                <Link
+                  to="/profile"
+                  className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  My Profile
+                </Link>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2 text-left"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {t('loginRegister')}
+              </Link>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 };
