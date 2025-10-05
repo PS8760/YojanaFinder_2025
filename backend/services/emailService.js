@@ -16,8 +16,8 @@ const SMTP_CONFIG = {
   port: process.env.SMTP_PORT || 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: process.env.EMAIL_USER || 'yojanafinder2024@gmail.com',
-    pass: process.env.EMAIL_PASS || 'your-app-password'
+    user: process.env.EMAIL_USER || 'spranav0812@gmail.com',
+    pass: process.env.EMAIL_PASS || 'psbu btxq wrjf sjju'
   }
 };
 
