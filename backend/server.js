@@ -10,9 +10,26 @@ import { sendContactEmail, sendEmailChangeNotification } from "./services/emailS
 const app = express();
 const port = process.env.PORT || 8080;
 
+// --- CORS Configuration for Production ---
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://yojana-finder-2025.vercel.app',
+    'https://yojanafinder.vercel.app',
+    /\.vercel\.app$/,
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept-Language']
+};
+
 // --- Middleware ---
-app.use(cors());
-app.use(express.json());
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 const corsOptions = {
   origin: [
@@ -30,9 +47,23 @@ const apiLimiter = rateLimit({
   message: { error: "Too many requests. Try again later." },
 });
 
-// --- Health Route ---
+// --- Health Routes ---
 app.get("/", (_, res) => {
-  res.json({ message: "✅ Yojana Finder API is running" });
+  res.json({
+    message: "✅ Yojana Finder API is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+app.get("/health", (_, res) => {
+  res.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 // --- Schemes Route ---
@@ -310,7 +341,42 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
+// --- Error Handling Middleware ---
+app.use((err, req, res, next) => {
+  console.error('❌ Unhandled Error:', err.stack);
+  res.status(500).json({
+    error: 'Something went wrong!',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
+});
+
+// --- 404 Handler ---
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    path: req.originalUrl,
+    method: req.method
+  });
+});
+
 // --- Start Server ---
-app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 Server running on port ${port}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌐 CORS enabled for: ${corsOptions.origin.join(', ')}`);
+});
+
+// --- Graceful Shutdown ---
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('✅ Process terminated');
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('✅ Process terminated');
+  });
 });
