@@ -5,8 +5,8 @@ const EMAIL_CONFIG = {
   // Gmail SMTP configuration
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'yojanafinder2024@gmail.com', // Replace with your Gmail
-    pass: process.env.EMAIL_PASS || 'your-app-password' // Replace with your Gmail App Password
+    user: process.env.EMAIL_USER || 'spranav0812@gmail.com', // Replace with your Gmail
+    pass: process.env.EMAIL_PASS || 'psbu btxq wrjf sjju' // Replace with your Gmail App Password
   }
 };
 
