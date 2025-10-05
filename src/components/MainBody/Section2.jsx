@@ -11,16 +11,16 @@ const Section2 = () => {
 
           {/* Left Side - Title */}
           <div className="text-center lg:text-left relative">
-            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[150px] font-light text-gray-800 leading-none">
+            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[150px] font-light text-gray-800 leading-none relative z-10">
               {t('whyTitle')}
             </h1>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-stretch-125% text-blue-500 hover:text-blue-700 transition-colors duration-300 mt-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-stretch-125% text-blue-500 hover:text-blue-700 transition-colors duration-300 mt-4 relative z-10">
               {t('whySubtitle')}
             </h2>
 
             {/* Question Mark */}
-            <div className="absolute -top-4 sm:-top-8 md:-top-12 lg:-top-16 right-0 lg:right-[-50px] xl:right-[-100px]">
-              <span className="text-8xl sm:text-9xl md:text-[200px] lg:text-[250px] xl:text-[290px] font-light text-gray-300 select-none">
+            <div className="absolute -top-4 sm:-top-8 md:-top-12 lg:-top-16 right-0 lg:right-[-30px] xl:right-[-50px] z-0">
+              <span className="text-6xl sm:text-7xl md:text-[120px] lg:text-[150px] xl:text-[200px] font-light text-gray-300 select-none opacity-50">
                 ?
               </span>
             </div>
