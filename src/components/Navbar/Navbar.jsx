@@ -147,7 +147,7 @@ const Navbar = () => {
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setShowUserMenu(false)}
                   >
-                    My Profile
+                    {t('myProfile')}
                   </Link>
                   <button
                     onClick={() => {
@@ -182,29 +182,35 @@ const Navbar = () => {
               className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Home
+              {t('home')}
             </Link>
             <Link
               to="/schemes"
               className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Schemes
+              {t('schemes')}
             </Link>
             <Link
               to="/aboutus"
               className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              About Us
+              {t('aboutUs')}
             </Link>
             <Link
               to="/contact"
               className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Contact
+              {t('contact')}
             </Link>
+
+            {/* Language Selector for Mobile */}
+            <div className="py-2 border-t border-gray-600 mt-2 pt-4">
+              <div className="text-blue-400 text-sm mb-2 font-medium">Language / भाषा / भाषा</div>
+              <LanguageSelector />
+            </div>
             {user ? (
               <>
                 <div className="flex items-center space-x-2 py-2">
@@ -218,7 +224,7 @@ const Navbar = () => {
                   className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  My Profile
+                  {t('myProfile')}
                 </Link>
                 <button
                   onClick={() => {
@@ -227,7 +233,7 @@ const Navbar = () => {
                   }}
                   className="text-blue-500 hover:text-blue-700 transition-colors duration-300 py-2 text-left"
                 >
-                  Logout
+                  {t('logout')}
                 </button>
               </>
             ) : (
