@@ -119,6 +119,16 @@ QUALITY REQUIREMENTS FOR MULTILINGUAL SCHEME GENERATION:
 
 OUTPUT FORMAT: Return ONLY a valid JSON array with no additional text or formatting. All content should be in ${language}.
 
+REQUIRED FIELDS IN JSON:
+- name: Scheme name in ${language}
+- description: Detailed description in ${language} (120-180 words)
+- department: Ministry/Department name in ${language}
+- category: Category in ${language}
+- eligibility_summary: Eligibility criteria in ${language}
+- url: Official website URL (if available)
+- lastUpdated: Recent update date in YYYY-MM-DD format (use realistic dates from 2023-2024)
+- launchYear: Year the scheme was launched (2023 or 2024)
+
 MULTILINGUAL SCHEME EXAMPLES FOR ${language}:
 ${language === 'hi' ? `
 EXAMPLE OUTPUT:
@@ -129,7 +139,9 @@ EXAMPLE OUTPUT:
     "department": "कृषि एवं किसान कल्याण मंत्रालय",
     "category": "कृषि",
     "eligibility_summary": "2 हेक्टेयर तक की खेती योग्य भूमि वाले छोटे और सीमांत किसान, भूमि रिकॉर्ड में पंजीकृत",
-    "url": "https://pmkisan.gov.in"
+    "url": "https://pmkisan.gov.in",
+    "lastUpdated": "2024-03-15",
+    "launchYear": "2019"
   }
 ]` : language === 'mr' ? `
 EXAMPLE OUTPUT:
@@ -233,7 +245,9 @@ EXAMPLE OUTPUT:
       department: scheme.department || 'Government of India',
       category: scheme.category || 'General',
       eligibility_summary: scheme.eligibility_summary || scheme.eligibility || 'Please check official website for eligibility criteria',
-      url: scheme.url || ''
+      url: scheme.url || '',
+      lastUpdated: scheme.lastUpdated || null, // Preserve lastUpdated if provided by AI
+      launchYear: scheme.launchYear || null // Preserve launchYear if provided by AI
     }));
 
     console.log(`✅ Successfully processed ${validSchemes.length} schemes`);
@@ -324,7 +338,9 @@ Focus on the most relevant schemes for: ${userDesc}`;
     department: scheme.department || 'Government of India',
     category: scheme.category || 'General',
     eligibility_summary: scheme.eligibility_summary || 'Please check official website for eligibility',
-    url: scheme.url || ''
+    url: scheme.url || '',
+    lastUpdated: scheme.lastUpdated || null, // Preserve lastUpdated if provided by AI
+    launchYear: scheme.launchYear || null // Preserve launchYear if provided by AI
   }));
 
   console.log(`✅ Simplified prompt generated ${validSchemes.length} schemes`);

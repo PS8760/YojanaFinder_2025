@@ -1,5 +1,5 @@
 import { useLanguage } from '../utils/i18n.jsx';
-import { processSchemeForDisplay, formatSchemeBenefits } from '../utils/schemeProcessor.js';
+import { processSchemeForDisplay, formatSchemeBenefits, getSchemeLastUpdated } from '../utils/schemeProcessor.js';
 
 const SchemeCard = ({
   scheme,
@@ -97,14 +97,21 @@ const SchemeCard = ({
               </p>
             )}
 
+            {/* Last Updated for full cards */}
+            {!compact && (
+              <p className="text-xs text-gray-400 mb-3">
+                {t('lastUpdated')}: {getSchemeLastUpdated(processedScheme, currentLanguage)}
+              </p>
+            )}
+
             {/* Action Buttons */}
             <div className={`flex gap-2 sm:gap-3 ${compact ? 'flex-col' : 'flex-col sm:flex-row'}`}>
               {/* View Details Button */}
               <button
                 onClick={() => onViewDetails && onViewDetails(processedScheme)}
                 className={`bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 text-sm font-medium whitespace-nowrap ${compact
-                    ? 'w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105'
-                    : 'flex-1 sm:flex-none'
+                  ? 'w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105'
+                  : 'flex-1 sm:flex-none'
                   }`}
               >
                 {t('viewDetails')}

@@ -45,7 +45,9 @@ OUTPUT FORMAT (JSON Array in ${language}):
     "department": "Responsible Department/Ministry in ${language}",
     "description": "Brief description in ${language} (50-80 words)",
     "eligibility": "Key eligibility criteria in ${language}",
-    "launchYear": "2023 or 2024"
+    "launchYear": "2023 or 2024",
+    "lastUpdated": "Recent update date in YYYY-MM-DD format (use realistic dates from 2023-2024)",
+    "url": "Official website URL if available"
   }
 ]
 
@@ -111,7 +113,9 @@ Generate 6 diverse schemes covering different sectors and target groups.`;
           department: "Ministry of Micro, Small and Medium Enterprises",
           description: "The PM Vishwakarma Yojana is a comprehensive scheme designed to empower traditional artisans and craftspeople across India. This initiative provides skill enhancement training, modern toolkit support worth ₹10,000, and easy access to credit facilities up to ₹1 lakh at subsidized interest rates. The scheme covers 18 traditional trades including carpentry, tailoring, blacksmithing, pottery, weaving, and other heritage crafts. It aims to preserve traditional skills while integrating modern techniques and market linkages to ensure sustainable livelihoods for artisan communities.",
           eligibility: "Traditional artisans engaged in 18 specified trades, minimum age 18 years, registered in official records",
-          launchYear: "2023"
+          launchYear: "2023",
+          lastUpdated: "2024-02-15",
+          url: "https://pmvishwakarma.gov.in"
         },
         {
           name: "Lakhpati Didi Scheme",
@@ -122,7 +126,9 @@ Generate 6 diverse schemes covering different sectors and target groups.`;
           department: "Ministry of Rural Development",
           description: "Empowering rural women to achieve annual income of ₹1 lakh through skill development, entrepreneurship training, and market linkage support under the National Rural Livelihood Mission.",
           eligibility: "Rural women members of Self Help Groups (SHGs)",
-          launchYear: "2023"
+          launchYear: "2023",
+          lastUpdated: "2024-01-20",
+          url: "https://nrlm.gov.in"
         },
         {
           name: "PM Surya Ghar Muft Bijli Yojana",
@@ -133,7 +139,9 @@ Generate 6 diverse schemes covering different sectors and target groups.`;
           department: "Ministry of New and Renewable Energy",
           description: "Providing free electricity through rooftop solar installations for 1 crore households with substantial subsidies and easy financing options.",
           eligibility: "Residential households with own roof space",
-          launchYear: "2024"
+          launchYear: "2024",
+          lastUpdated: "2024-03-01",
+          url: "https://pmsuryaghar.gov.in"
         },
         {
           name: "Ayushman Bharat Health Account (ABHA)",

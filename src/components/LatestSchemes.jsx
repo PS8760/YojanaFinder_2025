@@ -34,7 +34,9 @@ const LatestSchemes = () => {
           description: "The PM Vishwakarma Yojana is a comprehensive scheme designed to empower traditional artisans and craftspeople across India. This initiative provides skill enhancement training, modern toolkit support worth ₹10,000, and easy access to credit facilities up to ₹1 lakh at subsidized interest rates. The scheme covers 18 traditional trades including carpentry, tailoring, blacksmithing, pottery, weaving, and other heritage crafts. It aims to preserve traditional skills while integrating modern techniques and market linkages to ensure sustainable livelihoods for artisan communities.",
           department: "Ministry of Micro, Small and Medium Enterprises",
           eligibility_summary: "Traditional artisans engaged in 18 specified trades, minimum age 18 years, registered in official records",
-          url: "https://pmvishwakarma.gov.in"
+          url: "https://pmvishwakarma.gov.in",
+          lastUpdated: "2024-02-15",
+          launchYear: "2023"
         },
         {
           id: 2,

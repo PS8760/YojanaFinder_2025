@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../utils/i18n.jsx';
-import { processSchemeForDisplay } from '../utils/schemeProcessor.js';
+import { processSchemeForDisplay, getSchemeLastUpdated } from '../utils/schemeProcessor.js';
 
 const SchemeDetailsModal = ({ scheme, isOpen, onClose }) => {
   const { t, currentLanguage } = useLanguage();
@@ -10,6 +10,11 @@ const SchemeDetailsModal = ({ scheme, isOpen, onClose }) => {
 
   // Process scheme for multilingual display
   const processedScheme = processSchemeForDisplay(scheme, currentLanguage);
+
+  // Get formatted last updated date using utility function
+  const getLastUpdatedDate = (scheme) => {
+    return getSchemeLastUpdated(scheme, currentLanguage);
+  };
 
   const tabs = [
     { id: 'overview', label: t('overview'), icon: '📋' },
@@ -257,7 +262,7 @@ const SchemeDetailsModal = ({ scheme, isOpen, onClose }) => {
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex-shrink-0">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm text-gray-600 order-2 sm:order-1">
-              {t('lastUpdated')}: {new Date().toLocaleDateString()}
+              {t('lastUpdated')}: {getLastUpdatedDate(processedScheme)}
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
               {processedScheme.url && (
