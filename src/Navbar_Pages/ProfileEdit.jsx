@@ -96,7 +96,8 @@ const ProfileEdit = () => {
 
     try {
       // Use backend API for profile update
-      const response = await fetch(`http://localhost:8091/api/profile/${user.uid}`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8091';
+      const response = await fetch(`${API_URL}/api/profile/${user.uid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
