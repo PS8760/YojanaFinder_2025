@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "../components/Navbar/Navbar";
 import Footer from "../components/Footer/Footer";
 import { useLanguage } from "../utils/i18n.jsx";
+import { updateUserProfile } from "../utils/api";
 
 const ProfileEdit = () => {
   const { t } = useLanguage();
@@ -96,20 +97,7 @@ const ProfileEdit = () => {
 
     try {
       // Use backend API for profile update
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8091';
-      const response = await fetch(`${API_URL}/api/profile/${user.uid}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profileData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to update profile');
-      }
+      const result = await updateUserProfile(user.uid, profileData);
 
       // Handle email update with proper verification
       if (profileData.email !== user.email) {
