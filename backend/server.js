@@ -14,6 +14,13 @@ const port = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
+const corsOptions = {
+  origin: [
+    'https://yojana-finder-2025.vercel.app',  // Your frontend URL
+    /\.vercel\.app$/,
+  ]
+};
+
 // --- Rate Limiter ---
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
