@@ -31,13 +31,6 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-const corsOptions = {
-  origin: [
-    'https://yojana-finder-2025.vercel.app',  // Your frontend URL
-    /\.vercel\.app$/,
-  ]
-};
-
 // --- Rate Limiter ---
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
